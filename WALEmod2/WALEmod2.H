@@ -25,13 +25,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::LESModels::WALEmod1
+    Foam::LESModels::WALEmod2
 
 Group
     grpLESTurbulence
 
 Description
-    The Wall-adapting local eddy-viscosity (WALEmod1) SGS model.
+    The Wall-adapting local eddy-viscosity (WALEmod2) SGS model.
 
     Reference:
     \verbatim
@@ -43,7 +43,7 @@ Description
 
     The default model coefficients are
     \verbatim
-        WALEmod1Coeffs
+        WALEmod2Coeffs
         {
             Ck                  0.094;
             Ce                  1.048;e
@@ -55,12 +55,12 @@ See also
     Foam::LESModels::Smagorinsky
 
 SourceFiles
-    WALEmod1.C
+    WALEmod2.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef WALEmod1_H
-#define WALEmod1_H
+#ifndef WALEmod2_H
+#define WALEmod2_H
 
 #include "LESModel.H"
 #include "LESeddyViscosity.H"
@@ -73,21 +73,21 @@ namespace LESModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class WALEmod1 Declaration
+                           Class WALEmod2 Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class BasicTurbulenceModel>
-class WALEmod1
+class WALEmod2
 :
     public LESeddyViscosity<BasicTurbulenceModel>
 {
     // Private Member Functions
 
         //- No copy construct
-        WALEmod1(const WALEmod1&) = delete;
+        WALEmod2(const WALEmod2&) = delete;
 
         //- No copy assignment
-        void operator=(const WALEmod1&) = delete;
+        void operator=(const WALEmod2&) = delete;
 
 
 protected:
@@ -128,13 +128,13 @@ public:
 
 
     //- Runtime type information
-    TypeName("WALEmod1");
+    TypeName("WALEmod2");
 
 
     // Constructors
 
         //- Construct from components
-        WALEmod1
+        WALEmod2
         (
             const alphaField& alpha,
             const rhoField& rho,
@@ -148,7 +148,7 @@ public:
 
 
     //- Destructor
-    virtual ~WALEmod1() = default;
+    virtual ~WALEmod2() = default;
 
 
     // Member Functions
@@ -178,7 +178,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "WALEmod1.C"
+    #include "WALEmod2.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
