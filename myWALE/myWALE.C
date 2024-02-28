@@ -26,7 +26,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "WALE.H"
+#include "myWALE.H"
 #include "fvOptions.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -39,7 +39,7 @@ namespace LESModels
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-tmp<volSymmTensorField> WALE<BasicTurbulenceModel>::Sd
+tmp<volSymmTensorField> myWALE<BasicTurbulenceModel>::Sd
 (
     const volTensorField& gradU
 ) const
@@ -49,7 +49,7 @@ tmp<volSymmTensorField> WALE<BasicTurbulenceModel>::Sd
 
 
 template<class BasicTurbulenceModel>
-tmp<volScalarField> WALE<BasicTurbulenceModel>::k
+tmp<volScalarField> myWALE<BasicTurbulenceModel>::k
 (
     const volTensorField& gradU
 ) const
@@ -89,7 +89,7 @@ tmp<volScalarField> WALE<BasicTurbulenceModel>::k
 
 
 template<class BasicTurbulenceModel>
-void WALE<BasicTurbulenceModel>::correctNut()
+void myWALE<BasicTurbulenceModel>::correctNut()
 {
     this->nut_ = Ck_*this->delta()*sqrt(this->k(fvc::grad(this->U_)));
     this->nut_.correctBoundaryConditions();
@@ -102,7 +102,7 @@ void WALE<BasicTurbulenceModel>::correctNut()
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-WALE<BasicTurbulenceModel>::WALE
+myWALE<BasicTurbulenceModel>::myWALE
 (
     const alphaField& alpha,
     const rhoField& rho,
@@ -144,7 +144,36 @@ WALE<BasicTurbulenceModel>::WALE
             this->coeffDict_,
             0.325
         )
+    ),
+
+    kSGS_
+    (
+        IOobject
+        (
+            IOobject::groupName("kSGS", alphaRhoPhi.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh_,
+        dimensionedScalar("kSGS", dimVelocity*dimVelocity, 0)
+    ),
+
+    epsilonSGS_
+    (
+        IOobject
+        (
+            IOobject::groupName("epsilonSGS", alphaRhoPhi.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh_,
+        dimensionedScalar("epsilonSGS", dimVelocity*dimVelocity/dimTime, 0)
     )
+
 {
     if (type == typeName)
     {
@@ -156,7 +185,7 @@ WALE<BasicTurbulenceModel>::WALE
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-bool WALE<BasicTurbulenceModel>::read()
+bool myWALE<BasicTurbulenceModel>::read()
 {
     if (LESeddyViscosity<BasicTurbulenceModel>::read())
     {
@@ -171,7 +200,7 @@ bool WALE<BasicTurbulenceModel>::read()
 
 
 template<class BasicTurbulenceModel>
-tmp<volScalarField> WALE<BasicTurbulenceModel>::epsilon() const
+tmp<volScalarField> myWALE<BasicTurbulenceModel>::epsilon() const
 {
     volScalarField k(this->k(fvc::grad(this->U_)));
 
@@ -194,9 +223,22 @@ tmp<volScalarField> WALE<BasicTurbulenceModel>::epsilon() const
 
 
 template<class BasicTurbulenceModel>
-void WALE<BasicTurbulenceModel>::correct()
+void myWALE<BasicTurbulenceModel>::correct()
 {
     LESeddyViscosity<BasicTurbulenceModel>::correct();
+
+
+    const volVectorField& U = this->U_;
+    tmp<volTensorField> tgradU(fvc::grad(U));
+    const volTensorField& gradU = tgradU();
+
+    volSymmTensorField Sd= dev(symm(gradU & gradU));
+    volScalarField magSqrSd = magSqr(Sd);
+
+    kSGS_ = sqr(sqr(Cw_)*this->delta()/Ck_)*(pow3(magSqrSd)/(sqr(pow(magSqr(symm(gradU)), 5.0/2.0)+ pow(magSqrSd, 5.0/4.0))+ dimensionedScalar("SMALL",dimensionSet(0, 0, -10, 0, 0),SMALL)));
+
+    epsilonSGS_ = this->Ce_*kSGS_*sqrt(kSGS_)/this->delta();
+
     correctNut();
 }
 
