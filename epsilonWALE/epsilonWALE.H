@@ -25,13 +25,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::LESModels::myWALE
+    Foam::LESModels::epsilonWALE
 
 Group
     grpLESTurbulence
 
 Description
-    The Wall-adapting local eddy-viscosity (myWALE) SGS model.
+    The Wall-adapting local eddy-viscosity (epsilonWALE) SGS model.
 
     Reference:
     \verbatim
@@ -43,7 +43,7 @@ Description
 
     The default model coefficients are
     \verbatim
-        myWALECoeffs
+        epsilonWALECoeffs
         {
             Ck                  0.094;
             Ce                  1.048;e
@@ -55,12 +55,12 @@ See also
     Foam::LESModels::Smagorinsky
 
 SourceFiles
-    myWALE.C
+    epsilonWALE.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef myWALE_H
-#define myWALE_H
+#ifndef epsilonWALE_H
+#define epsilonWALE_H
 
 #include "LESModel.H"
 #include "LESeddyViscosity.H"
@@ -73,21 +73,21 @@ namespace LESModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class myWALE Declaration
+                           Class epsilonWALE Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class BasicTurbulenceModel>
-class myWALE
+class epsilonWALE
 :
     public LESeddyViscosity<BasicTurbulenceModel>
 {
     // Private Member Functions
 
         //- No copy construct
-        myWALE(const myWALE&) = delete;
+        epsilonWALE(const epsilonWALE&) = delete;
 
         //- No copy assignment
-        void operator=(const myWALE&) = delete;
+        void operator=(const epsilonWALE&) = delete;
 
 
 protected:
@@ -96,9 +96,12 @@ protected:
 
         dimensionedScalar Ck_;
         dimensionedScalar Cw_;
+	dimensionedScalar startAveraging_;
 
 	volScalarField kSGS_;
 	volScalarField epsilonSGS_;
+	volScalarField epsilonSolve_;
+	volVectorField Uavg_;
 
     // Protected Member Functions
 
@@ -122,13 +125,13 @@ public:
 
 
     //- Runtime type information
-    TypeName("myWALE");
+    TypeName("epsilonWALE");
 
 
     // Constructors
 
         //- Construct from components
-        myWALE
+        epsilonWALE
         (
             const alphaField& alpha,
             const rhoField& rho,
@@ -142,7 +145,7 @@ public:
 
 
     //- Destructor
-    virtual ~myWALE() = default;
+    virtual ~epsilonWALE() = default;
 
 
     // Member Functions
@@ -172,7 +175,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "myWALE.C"
+    #include "epsilonWALE.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
