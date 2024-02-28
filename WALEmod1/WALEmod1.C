@@ -26,7 +26,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "epsilonWALE.H"
+#include "WALEmod1.H"
 #include "fvOptions.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -39,7 +39,7 @@ namespace LESModels
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-tmp<volSymmTensorField> epsilonWALE<BasicTurbulenceModel>::Sd
+tmp<volSymmTensorField> WALEmod1<BasicTurbulenceModel>::Sd
 (
     const volTensorField& gradU
 ) const
@@ -49,7 +49,7 @@ tmp<volSymmTensorField> epsilonWALE<BasicTurbulenceModel>::Sd
 
 
 template<class BasicTurbulenceModel>
-tmp<volScalarField> epsilonWALE<BasicTurbulenceModel>::k
+tmp<volScalarField> WALEmod1<BasicTurbulenceModel>::k
 (
     const volTensorField& gradU
 ) const
@@ -89,7 +89,7 @@ tmp<volScalarField> epsilonWALE<BasicTurbulenceModel>::k
 
 
 template<class BasicTurbulenceModel>
-void epsilonWALE<BasicTurbulenceModel>::correctNut()
+void WALEmod1<BasicTurbulenceModel>::correctNut()
 {
     this->nut_ = Ck_*this->delta()*sqrt(this->k(fvc::grad(this->U_)));
     this->nut_.correctBoundaryConditions();
@@ -102,7 +102,7 @@ void epsilonWALE<BasicTurbulenceModel>::correctNut()
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-epsilonWALE<BasicTurbulenceModel>::epsilonWALE
+WALEmod1<BasicTurbulenceModel>::WALEmod1
 (
     const alphaField& alpha,
     const rhoField& rho,
@@ -145,15 +145,46 @@ epsilonWALE<BasicTurbulenceModel>::epsilonWALE
             0.325
         )
     ),
-
+/*
     startAveraging_
     (
         dimensioned<scalar>::lookupOrAddToDict
         (
             "startAveraging",
+            //&const_cast<dictionary>(this->runTime_.controlDict()),  
             this->coeffDict_,
             0
         )
+    ),
+*/
+/*
+    startAveraging_
+    (
+        dimensioned<scalar>::lookupOrAddToDict
+        (
+            "startAveraging",
+            (runTime.controlDict()),  
+            //this->coeffDict_,
+            0
+        )
+    ),
+*/
+  startAveraging_( readScalar(this->runTime_.controlDict().lookup("startAveraging"))),
+//    startAveraging_ (this->runTime_.controlDict().lookupOrDefault<scalar>("startAveraging", 0)),
+
+
+    kRES_
+    (
+        IOobject
+        (
+            IOobject::groupName("kRES", this->alphaRhoPhi_.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh_,
+        dimensionedScalar("kRES", dimVelocity*dimVelocity, 0)
     ),
 
     kSGS_
@@ -170,6 +201,20 @@ epsilonWALE<BasicTurbulenceModel>::epsilonWALE
         dimensionedScalar("kSGS", dimVelocity*dimVelocity, 0)
     ),
 
+    kRatio_
+    (
+        IOobject
+        (
+            IOobject::groupName("kRatio", alphaRhoPhi.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh_,
+        dimensionedScalar("kRatio", dimless, 0)
+    ),
+
     epsilonSGS_
     (
         IOobject
@@ -184,18 +229,32 @@ epsilonWALE<BasicTurbulenceModel>::epsilonWALE
         dimensionedScalar("epsilonSGS", dimVelocity*dimVelocity/dimTime, 0)
     ),
 
-    epsilonSolve_
+    epsilonRES_
     (
         IOobject
         (
-            IOobject::groupName("epsilonSolve", alphaRhoPhi.group()),
+            IOobject::groupName("epsilonRES", alphaRhoPhi.group()),
             this->runTime_.timeName(),
             this->mesh_,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
         this->mesh_,
-        dimensionedScalar("epsilonSolve", dimVelocity*dimVelocity/dimTime, 0)
+        dimensionedScalar("epsilonRES", dimVelocity*dimVelocity/dimTime, 0)
+    ),
+
+    deltaOverEta_
+    (
+        IOobject
+        (
+            IOobject::groupName("deltaOverEta", alphaRhoPhi.group()),
+            this->runTime_.timeName(),
+            this->mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        this->mesh_,
+        dimensionedScalar("deltaOverEta", dimless, 0)
     ),
 
     Uavg_
@@ -205,7 +264,7 @@ epsilonWALE<BasicTurbulenceModel>::epsilonWALE
             IOobject::groupName("Uavg", alphaRhoPhi.group()),
             this->runTime_.timeName(),
             this->mesh_,
-            IOobject::NO_READ,
+            IOobject::READ_IF_PRESENT,
             IOobject::AUTO_WRITE
         ),
         this->mesh_,
@@ -223,7 +282,7 @@ epsilonWALE<BasicTurbulenceModel>::epsilonWALE
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-bool epsilonWALE<BasicTurbulenceModel>::read()
+bool WALEmod1<BasicTurbulenceModel>::read()
 {
     if (LESeddyViscosity<BasicTurbulenceModel>::read())
     {
@@ -239,7 +298,7 @@ bool epsilonWALE<BasicTurbulenceModel>::read()
 
 
 template<class BasicTurbulenceModel>
-tmp<volScalarField> epsilonWALE<BasicTurbulenceModel>::epsilon() const
+tmp<volScalarField> WALEmod1<BasicTurbulenceModel>::epsilon() const
 {
     volScalarField k(this->k(fvc::grad(this->U_)));
 
@@ -262,7 +321,7 @@ tmp<volScalarField> epsilonWALE<BasicTurbulenceModel>::epsilon() const
 
 
 template<class BasicTurbulenceModel>
-void epsilonWALE<BasicTurbulenceModel>::correct()
+void WALEmod1<BasicTurbulenceModel>::correct()
 {
     if (!this->turbulence_)
     {
@@ -283,32 +342,56 @@ void epsilonWALE<BasicTurbulenceModel>::correct()
 
     epsilonSGS_ = this->Ce_*kSGS_*sqrt(kSGS_)/this->delta();
 
-/////////////////////////////////////////
-scalar time = this->runTime_.value();
-scalar dt = this->runTime_.deltaT().value();
+    // *******************************************************************************************************
+    //
+    //
+    //
+    // *******************************************************************************************************
+    scalar time = this->runTime_.value();
+    scalar dt = this->runTime_.deltaT().value();
 
-scalar startAvg = startAveraging_.value();
+    scalar startAvg = startAveraging_.value();
 
-if (time > startAvg )
-{
-    if ( (time - dt) < startAvg )
+    if (time > startAvg )
     {
-        Uavg_ = U;
+        if ( (time - dt) < startAvg )
+        {
+            Uavg_ = U;
+        }
+        else
+        {
+            Uavg_ = ( Uavg_*(time-startAvg) + U*dt ) / (time-startAvg + dt);
+        }
     }
-    else
-    {
-        Uavg_ = ( Uavg_*(time-startAvg) + U*dt ) / (time-startAvg + dt);
-    }
-}
 
+    // k resolved
+    kRES_ =  0.5*magSqr(U-Uavg_);
+    
+    // kRatio
+    kRatio_ = kSGS_/(kSGS_ + kRES_);
 
-
-//        Uavg_ = ( Uavg_*(time) + U*dt ) / (time + dt);
-///////////////////////////////////////////////////////
-
+    // epsilon resolved
     tmp<volTensorField> tgradUp(fvc::grad(U-Uavg_));
     const volTensorField& gradUp = tgradUp();
-    epsilonSolve_ = this->nu()*(gradUp && gradUp);
+    epsilonRES_ = this->nu()*(gradUp && gradUp);
+
+    // deltaOverEta
+//    deltaOverEta = 1;
+//    deltaOverEta_ = pow(this->delta(),1.0/3.0)/pow((pow3(this->nu())/(epsilonSGS_+epsilonRES_)),0.25);
+    deltaOverEta_ = this->delta()/pow((pow3(this->nu())/(epsilonSGS_+epsilonRES_)),0.25);
+
+    //
+
+    // *******************************************************************************************************
+    //
+    //
+    //
+    // *******************************************************************************************************
+
+    //        Uavg_ = ( Uavg_*(time) + U*dt ) / (time + dt);
+    
+
+
 
     correctNut();
 }
