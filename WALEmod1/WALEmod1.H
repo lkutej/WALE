@@ -25,13 +25,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::LESModels::epsilonWALE
+    Foam::LESModels::WALEmod1
 
 Group
     grpLESTurbulence
 
 Description
-    The Wall-adapting local eddy-viscosity (epsilonWALE) SGS model.
+    The Wall-adapting local eddy-viscosity (WALEmod1) SGS model.
 
     Reference:
     \verbatim
@@ -43,7 +43,7 @@ Description
 
     The default model coefficients are
     \verbatim
-        epsilonWALECoeffs
+        WALEmod1Coeffs
         {
             Ck                  0.094;
             Ce                  1.048;e
@@ -55,12 +55,12 @@ See also
     Foam::LESModels::Smagorinsky
 
 SourceFiles
-    epsilonWALE.C
+    WALEmod1.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef epsilonWALE_H
-#define epsilonWALE_H
+#ifndef WALEmod1_H
+#define WALEmod1_H
 
 #include "LESModel.H"
 #include "LESeddyViscosity.H"
@@ -73,21 +73,21 @@ namespace LESModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class epsilonWALE Declaration
+                           Class WALEmod1 Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class BasicTurbulenceModel>
-class epsilonWALE
+class WALEmod1
 :
     public LESeddyViscosity<BasicTurbulenceModel>
 {
     // Private Member Functions
 
         //- No copy construct
-        epsilonWALE(const epsilonWALE&) = delete;
+        WALEmod1(const WALEmod1&) = delete;
 
         //- No copy assignment
-        void operator=(const epsilonWALE&) = delete;
+        void operator=(const WALEmod1&) = delete;
 
 
 protected:
@@ -96,12 +96,15 @@ protected:
 
         dimensionedScalar Ck_;
         dimensionedScalar Cw_;
-	dimensionedScalar startAveraging_;
+    dimensionedScalar startAveraging_;
 
-	volScalarField kSGS_;
-	volScalarField epsilonSGS_;
-	volScalarField epsilonSolve_;
-	volVectorField Uavg_;
+    volScalarField kRES_;
+    volScalarField kSGS_;
+    volScalarField kRatio_;
+    volScalarField epsilonSGS_;
+    volScalarField epsilonRES_;
+    volScalarField deltaOverEta_;
+    volVectorField Uavg_;
 
     // Protected Member Functions
 
@@ -125,13 +128,13 @@ public:
 
 
     //- Runtime type information
-    TypeName("epsilonWALE");
+    TypeName("WALEmod1");
 
 
     // Constructors
 
         //- Construct from components
-        epsilonWALE
+        WALEmod1
         (
             const alphaField& alpha,
             const rhoField& rho,
@@ -145,7 +148,7 @@ public:
 
 
     //- Destructor
-    virtual ~epsilonWALE() = default;
+    virtual ~WALEmod1() = default;
 
 
     // Member Functions
@@ -175,7 +178,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "epsilonWALE.C"
+    #include "WALEmod1.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
