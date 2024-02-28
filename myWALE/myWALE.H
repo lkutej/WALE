@@ -25,13 +25,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::LESModels::WALE
+    Foam::LESModels::myWALE
 
 Group
     grpLESTurbulence
 
 Description
-    The Wall-adapting local eddy-viscosity (WALE) SGS model.
+    The Wall-adapting local eddy-viscosity (myWALE) SGS model.
 
     Reference:
     \verbatim
@@ -43,7 +43,7 @@ Description
 
     The default model coefficients are
     \verbatim
-        WALECoeffs
+        myWALECoeffs
         {
             Ck                  0.094;
             Ce                  1.048;e
@@ -55,12 +55,12 @@ See also
     Foam::LESModels::Smagorinsky
 
 SourceFiles
-    WALE.C
+    myWALE.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef WALE_H
-#define WALE_H
+#ifndef myWALE_H
+#define myWALE_H
 
 #include "LESModel.H"
 #include "LESeddyViscosity.H"
@@ -73,21 +73,21 @@ namespace LESModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class WALE Declaration
+                           Class myWALE Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class BasicTurbulenceModel>
-class WALE
+class myWALE
 :
     public LESeddyViscosity<BasicTurbulenceModel>
 {
     // Private Member Functions
 
         //- No copy construct
-        WALE(const WALE&) = delete;
+        myWALE(const myWALE&) = delete;
 
         //- No copy assignment
-        void operator=(const WALE&) = delete;
+        void operator=(const myWALE&) = delete;
 
 
 protected:
@@ -97,6 +97,8 @@ protected:
         dimensionedScalar Ck_;
         dimensionedScalar Cw_;
 
+	volScalarField kSGS_;
+	volScalarField epsilonSGS_;
 
     // Protected Member Functions
 
@@ -120,13 +122,13 @@ public:
 
 
     //- Runtime type information
-    TypeName("WALE");
+    TypeName("myWALE");
 
 
     // Constructors
 
         //- Construct from components
-        WALE
+        myWALE
         (
             const alphaField& alpha,
             const rhoField& rho,
@@ -140,7 +142,7 @@ public:
 
 
     //- Destructor
-    virtual ~WALE() = default;
+    virtual ~myWALE() = default;
 
 
     // Member Functions
@@ -170,7 +172,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "WALE.C"
+    #include "myWALE.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
