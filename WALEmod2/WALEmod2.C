@@ -26,7 +26,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "WALEmod1.H"
+#include "WALEmod2.H"
 #include "fvOptions.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -39,7 +39,7 @@ namespace LESModels
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-tmp<volSymmTensorField> WALEmod1<BasicTurbulenceModel>::Sd
+tmp<volSymmTensorField> WALEmod2<BasicTurbulenceModel>::Sd
 (
     const volTensorField& gradU
 ) const
@@ -49,7 +49,7 @@ tmp<volSymmTensorField> WALEmod1<BasicTurbulenceModel>::Sd
 
 
 template<class BasicTurbulenceModel>
-tmp<volScalarField> WALEmod1<BasicTurbulenceModel>::k
+tmp<volScalarField> WALEmod2<BasicTurbulenceModel>::k
 (
     const volTensorField& gradU
 ) const
@@ -89,7 +89,7 @@ tmp<volScalarField> WALEmod1<BasicTurbulenceModel>::k
 
 
 template<class BasicTurbulenceModel>
-void WALEmod1<BasicTurbulenceModel>::correctNut()
+void WALEmod2<BasicTurbulenceModel>::correctNut()
 {
     this->nut_ = Ck_*this->delta()*sqrt(this->k(fvc::grad(this->U_)));
     this->nut_.correctBoundaryConditions();
@@ -102,7 +102,7 @@ void WALEmod1<BasicTurbulenceModel>::correctNut()
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-WALEmod1<BasicTurbulenceModel>::WALEmod1
+WALEmod2<BasicTurbulenceModel>::WALEmod2
 (
     const alphaField& alpha,
     const rhoField& rho,
@@ -282,7 +282,7 @@ WALEmod1<BasicTurbulenceModel>::WALEmod1
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class BasicTurbulenceModel>
-bool WALEmod1<BasicTurbulenceModel>::read()
+bool WALEmod2<BasicTurbulenceModel>::read()
 {
     if (LESeddyViscosity<BasicTurbulenceModel>::read())
     {
@@ -298,7 +298,7 @@ bool WALEmod1<BasicTurbulenceModel>::read()
 
 
 template<class BasicTurbulenceModel>
-tmp<volScalarField> WALEmod1<BasicTurbulenceModel>::epsilon() const
+tmp<volScalarField> WALEmod2<BasicTurbulenceModel>::epsilon() const
 {
     volScalarField k(this->k(fvc::grad(this->U_)));
 
@@ -321,7 +321,7 @@ tmp<volScalarField> WALEmod1<BasicTurbulenceModel>::epsilon() const
 
 
 template<class BasicTurbulenceModel>
-void WALEmod1<BasicTurbulenceModel>::correct()
+void WALEmod2<BasicTurbulenceModel>::correct()
 {
     if (!this->turbulence_)
     {
