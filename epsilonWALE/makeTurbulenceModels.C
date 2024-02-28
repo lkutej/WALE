@@ -15,10 +15,10 @@ namespace Foam
         LEStransportModelIncompressibleTurbulenceModel;
 }
 
-#include "myWALE.H"
+#include "epsilonWALE.H"
 makeTemplatedTurbulenceModel
 (
     transportModelIncompressibleTurbulenceModel,
     LES,
-    myWALE
+    epsilonWALE
 );
